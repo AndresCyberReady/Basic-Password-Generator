@@ -1,77 +1,144 @@
 ﻿using System;
-using System.Linq; // Required for Any()
+using System.Collections.Generic;
+using System.Linq;
 
 namespace PasswordChecker
 {
     class Program
     {
-        public static void Main(string[] args)
+        // Constants for password criteria
+        private const int MinLength = 8;
+        private const string UppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        private const string LowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+        private const string DigitChars = "0123456789";
+        private const string SpecialChars = "@#$%!*";
+
+        static void Main(string[] args)
         {
-            int minLength = 8;
+            bool continueChecking = true;
+            
+            do
+            {
+                Console.Clear();
+                Console.WriteLine("=== Password Strength Checker ===\n");
+                Console.WriteLine("Enter a password (or type 'exit' to quit):");
+                string input = Console.ReadLine();
+
+                if (input?.ToLower() == "exit")
+                {
+                    continueChecking = false;
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    Console.WriteLine("\nError: Password cannot be empty. Press any key to try again...");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                var (score, feedback) = CheckPassword(input);
+                
+                Console.WriteLine($"\nPassword score: {score}/5");
+                
+                if (feedback.Length > 0)
+                {
+                    Console.WriteLine("\nSuggestions to improve your password:");
+                    foreach (var suggestion in feedback)
+                    {
+                        Console.WriteLine($"- {suggestion}");
+                    }
+                }
+
+                Console.WriteLine($"\nRemember to check your password against breaches at haveibeenpwned.com");
+                
+                switch (score)
+                {
+                    case 5:
+                        Console.WriteLine("\n✅ Password is extremely strong.");
+                        break;
+                    case 4:
+                        Console.WriteLine("\n⚠️  Password is strong but could be improved.");
+                        break;
+                    case 3:
+                        Console.WriteLine("\n⚠️  Password is medium strength.");
+                        break;
+                    case 2:
+                        Console.WriteLine("\n❌ Password is weak.");
+                        break;
+                    case 1:
+                        Console.WriteLine("\n❌ Password is very weak.");
+                        break;
+                    default:
+                        Console.WriteLine("\n❌ Invalid password format.");
+                        break;
+                }
+
+                Console.WriteLine("\nWould you like to try another password? (y/n)");
+                string choice = Console.ReadLine();
+                continueChecking = choice?.ToLower() == "y";
+
+            } while (continueChecking);
+
+            Console.WriteLine("\nThank you for using the Password Strength Checker!");
+        }
+
+        private static (int score, string[] feedback) CheckPassword(string password)
+        {
+            var feedbackList = new List<string>();
             int score = 0;
-            string password;
 
-            string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            string lowercase = "abcdefghijklmnopqrstuvwxyz";
-            string digits = "0123456789";
-            string specialChars = "@#$%!*";
-
-            Console.WriteLine("Please enter a password");
-            password = Console.ReadLine();
-
-            // Check password length
-            if (password.Length >= minLength)
+            // Check length requirement
+            if (password.Length >= MinLength)
             {
-                score += 1;
+                score++;
+            }
+            else
+            {
+                feedbackList.Add($"Minimum length is {MinLength} characters.");
             }
 
-            // Check for uppercase characters
-            if (password.Any(c => uppercase.Contains(c)))
+            // Check for uppercase letters
+            if (password.Any(c => UppercaseChars.Contains(c)))
             {
-                score += 1;
+                score++;
+            }
+            else
+            {
+                feedbackList.Add("Add at least one uppercase letter.");
             }
 
-            // Check for lowercase characters
-            if (password.Any(c => lowercase.Contains(c)))
+            // Check for lowercase letters
+            if (password.Any(c => LowercaseChars.Contains(c)))
             {
-                score += 1;
+                score++;
+            }
+            else
+            {
+                feedbackList.Add("Add at least one lowercase letter.");
             }
 
             // Check for digits
-            if (password.Any(c => digits.Contains(c)))
+            if (password.Any(c => DigitChars.Contains(c)))
             {
-                score += 1;
+                score++;
+            }
+            else
+            {
+                feedbackList.Add("Include at least one number.");
             }
 
             // Check for special characters
-            if (password.Any(c => specialChars.Contains(c)))
+            if (password.Any(c => SpecialChars.Contains(c)))
             {
-                score += 1;
+                score++;
+            }
+            else
+            {
+                feedbackList.Add($"Add at least one special character ({SpecialChars})");
             }
 
-            // Output the score
-            Console.WriteLine($"Password score: {score}. Please still make sure to visit haveibeenpwned.com to ensure your password has not been seen before");
-
-            // Provide feedback based on the score using a switch statement
-            switch (score)
-            {
-                
-                case 4:
-                    Console.WriteLine("Password is extremely strong.");
-                    break;
-                case 3:
-                    Console.WriteLine("Password is strong.");
-                    break;
-                case 2:
-                    Console.WriteLine("Password is medium.");
-                    break;
-                case 1:
-                    Console.WriteLine("Password is weak.");
-                    break;
-                default:
-                    Console.WriteLine("Password doesn't meet any of the standards.");
-                    break;
-            }
+            return (score, feedbackList.ToArray());
         }
     }
 }
