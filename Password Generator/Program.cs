@@ -77,6 +77,7 @@ namespace PasswordChecker
                 Console.WriteLine("\nWould you like to try another password? (y/n)");
                 string choice = Console.ReadLine();
                 continueChecking = choice?.ToLower() == "y";
+                continueChecking = continueChecking || choice?.ToLower() == "yes";
 
             } while (continueChecking);
 
